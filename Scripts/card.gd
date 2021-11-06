@@ -1,23 +1,26 @@
 extends Spatial
 class_name Card
 
-var RedItem = preload("res://Materials/red_item.tres")
-var GreenItem = preload("res://Materials/green_item.tres")
-var BlueItem = preload("res://Materials/blue_item.tres")
+var RedItem = preload("res://Materials/RedItem.tres")
+var GreenItem = preload("res://Materials/GreenItem.tres")
+var BlueItem = preload("res://Materials/BlueItem.tres")
+var YellowItem = preload("res://Materials/YellowItem.tres")
 
-enum CardType {TYPE_RED, TYPE_GREEN, TYPE_BLUE}
+enum CardType {TYPE_RED, TYPE_GREEN, TYPE_BLUE, TYPE_YELLOW}
 enum FlipState {HIDDEN, UNHIDING, SHOWING, HIDING}
 const DEFAULT_ROTATION_RATE_DEGREES = 720.0
 
 export(CardType) var card_type = CardType.TYPE_RED setget set_type, get_type
 export(float) var rotation_rate_degrees = DEFAULT_ROTATION_RATE_DEGREES
 export(String) var card_name 
+var cardModel = null
 var current_orientation = 0
 var current_flip_state = FlipState.HIDDEN
 var TypeMaterialMapping = {
 	CardType.TYPE_RED: RedItem,
 	CardType.TYPE_GREEN: GreenItem,
-	CardType.TYPE_BLUE: BlueItem
+	CardType.TYPE_BLUE: BlueItem,
+	CardType.TYPE_YELLOW: YellowItem
 }
 
 signal hidden(card_name)
@@ -27,6 +30,9 @@ signal mouse_exit(card_name)
 signal mouse_click(card_name, event)
 
 func _ready():
+	cardModel = get_node("Card")
+	assert(cardModel != null)
+	
 	var pick_shape = get_node("PickShape")
 	assert(pick_shape != null)
 	
@@ -57,8 +63,8 @@ func set_type(new_type):
 	card_type = new_type
 	var material = TypeMaterialMapping[card_type]
 	
-	var item_side_mesh = get_node("ItemSide")
-	(item_side_mesh as MeshInstance).set_surface_material(0, material)
+	var item_side_mesh = get_node("Card")
+	(item_side_mesh as MeshInstance).set_surface_material(1, material)
 	
 func is_hidden():
 	return current_flip_state == FlipState.HIDDEN
@@ -95,22 +101,22 @@ func _unhiding(delta):
 	var theta = delta * rotation_rate_degrees
 	
 	if (180.0 - current_orientation) < theta:
-		transform.basis = Basis(Vector3(1, 0, 0), deg2rad(180.0))
+		cardModel.transform.basis = Basis(Vector3(1, 0, 0), deg2rad(180.0))
 		current_orientation = 180.0
 		current_flip_state = FlipState.SHOWING
 		emit_signal("showing", card_name)
 	else:
 		current_orientation += theta
-		transform.basis = transform.basis.rotated(Vector3(1, 0, 0), deg2rad(theta))
+		cardModel.transform.basis = cardModel.transform.basis.rotated(Vector3(1, 0, 0), deg2rad(theta))
 
 func _hiding(delta):
 	var theta = delta * rotation_rate_degrees
 	
 	if current_orientation < theta:
-		transform.basis = Basis(Vector3(1, 0, 0), 0.0)
+		cardModel.transform.basis = Basis(Vector3(1, 0, 0), 0.0)
 		current_orientation = 0
 		current_flip_state = FlipState.HIDDEN
 		emit_signal("hidden", card_name)
 	else:
 		current_orientation -= theta
-		transform.basis = transform.basis.rotated(Vector3(1,0,0), deg2rad(-theta))
+		cardModel.transform.basis = cardModel.transform.basis.rotated(Vector3(1,0,0), deg2rad(-theta))

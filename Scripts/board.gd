@@ -113,8 +113,8 @@ func _buildBoard():
 			remaining_cards[card.card_name] = card
 
 func _get_position(i, j):
-	var card_size = 1.2
-	var offset = ((size * card_size) / 2.0) - 0.5
+	var card_size = 2.4
+	var offset = ((size * card_size) / 2.0) - 1.0
 	
 	var result = Vector3((i * card_size) - offset, (j * card_size) - offset, 0)
 	
